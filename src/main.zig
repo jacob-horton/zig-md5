@@ -77,6 +77,7 @@ fn md5_hash(alloc: std.mem.Allocator, data: []const u8) ![16]u8 {
     for (0..(N / 16)) |i| {
         // Copy block i into X
         for (0..16) |j| {
+            // We read 4 bytes into a 32 bit integer
             const start = i * 64 + j * 4;
             const end = start + 4;
 
@@ -197,13 +198,7 @@ pub fn main() !void {
     const file_contents = try read_file(alloc, "./build.zig");
     defer alloc.free(file_contents);
 
-    var real_hash: [std.crypto.hash.Md5.digest_length]u8 = undefined;
-    std.crypto.hash.Md5.hash(file_contents, &real_hash, .{});
-    // std.crypto.hash.Md5.hash("1234", &real_hash, .{});
-    try stdout.print("{s}\n", .{std.fmt.fmtSliceHexLower(&real_hash)});
-
     const hash = try md5_hash(alloc, file_contents);
-    // const hash = try md5_hash(alloc, "1234");
     try stdout.print("{s}\n", .{std.fmt.fmtSliceHexLower(&hash)});
 
     try bw.flush();
@@ -211,7 +206,7 @@ pub fn main() !void {
 
 const TestCase = std.meta.Tuple(&.{ []const u8, []const u8 });
 
-test "simple test" {
+test "test md5" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const alloc = gpa.allocator();
